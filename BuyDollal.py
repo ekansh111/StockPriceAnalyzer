@@ -27,14 +27,22 @@ with open("DataWithEMA.csv", "r") as CSVDataFile:
 	DataFile = pd.read_csv(CSVDataFile)
 	Data = DataFile[["Date","Price","Chg","Av_Sev","Av_OneFrty"]] #The dataframe thingy
 	# When to buy
-	x,TotProf = 0,0
+	x,TotProf,TradP,TradL = 0,0,0,0
 	while (x<1726):
 		if(Data.Av_Sev[x]>Data.Av_OneFrty[x]):
 			print("Buy On: "+Data.Date[x])
 			x, prof = SellDate(Data,x+1)
+			if(prof > 0):
+				TradP = TradP + 1
+			else:
+				TradL = TradL + 1
 			TotProf = TotProf+prof
 		else:
 			x = x+1
 	print("Total Profit Made: " + str(TotProf))
+	print("Total Trade With Profit: " + str(TradP))
+	print("Total Trade With Loss: " + str(TradL))
+	print("Win:Loss: " + str(TradP/TradL))
+
 
 
