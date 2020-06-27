@@ -21,28 +21,73 @@ with open("NotFucked.csv", "r") as CSVDataFile:
 	ComputeData = reset_my_index(ComputeData)
 	EMADataFile = open("DataWithEMA.csv", "w", newline="\n")
 	EMAWriter = csv.writer(EMADataFile)
-	EMAWriter.writerow(["Date","Price","Chg","Av_Sev","Av_OneFrty"])
+	EMAWriter.writerow(["Date","Price","Chg","Av_Sev","Av_OneFrty","SevOverFortyFlag","Av_Six","Av_TwenOne"])
 	# print(ComputeData.Price[0])
-	EMAWriter.writerow([ComputeData.Date[0],ComputeData.Price[0],ComputeData.Chg[0],ComputeData.Price[0],ComputeData.Price[0]]) #First Row
+	EMAWriter.writerow([ComputeData.Date[0],ComputeData.Price[0],ComputeData.Chg[0],ComputeData.Price[0],ComputeData.Price[0],False,ComputeData.Price[0],ComputeData.Price[0]]) #First Row
 
-	Mean140,Mean7 = 0,0
-	for x in range(1,ComputeData.size):
-		if (x < 70):
+	Mean140,Mean7,Old7,Old06,Old21,Old140 = 0,0,0,0,0,0
+	Flag = False
+	for x in range(1,1726):
+		if(x < 6):
 			MeanPrice = ComputeData[:x].mean().Price
-			EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],MeanPrice,MeanPrice]) #Date,Price,Chg,Av_Sev,Av_OneFrty
-		elif(x<140):
-			Mean7 = ComputeData[(x-70):x].mean().Price
-			Mean140 = ComputeData[:x].mean().Price
-			EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140])
-	Old7,Old140,= Mean7,Mean140
-	for x in range(140,1726):
-		# print(x)
-		amt = ComputeData.Price[x]
-		Mean7 = EMA_Calculator(amt,70,Old7)
-		Old7 = Mean7
-		Mean140 = EMA_Calculator(amt,140,Old140)
-		Old140 = Mean140
-		EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140])
+			Mean06,Mean21,Mean140,Mean7 = MeanPrice,MeanPrice,MeanPrice,MeanPrice
+			Flag = False
+			Old6 = MeanPrice
+			
+		elif (x < 21): #EMA For 6 save old 21 day value
+			amt = ComputeData.Price[x]
+			MeanPrice = ComputeData[:x].mean().Price
+			Mean06 = EMA_Calculator(amt,6,Old06)
+			Mean21,Mean140,Mean7 = MeanPrice,MeanPrice,MeanPrice
+			Old06 = Mean06
+			Old21 = MeanPrice
+		elif(x<70): #EMA for 6,21, save old 70 day value
+			amt = ComputeData.Price[x]
+			Mean06 = EMA_Calculator(amt,6,Old06) #6DayEMA
+			Mean21 = EMA_Calculator(amt,21,Old21)#21 day EMA
+			Old06, Old21 = Mean06, Mean21 
+			MeanPrice = ComputeData[:x].mean().Price #Mean for 70 and 140
+			Old7 = MeanPrice
+			Mean140,Mean7 = MeanPrice,MeanPrice
+		elif(x<140):#EMA fro 6,21,70, save old value for 140
+			amt = ComputeData.Price[x]
+			Mean06 = EMA_Calculator(amt,6,Old06) #6DayEMA
+			Mean21 = EMA_Calculator(amt,21,Old21)#21 day EMA
+			Mean7  = EMA_Calculator(amt,70,Old7) #70 day EMA
+			Old6, Old21, Old7 = Mean06, Mean21, Mean21
+			MeanPrice = ComputeData[:x].mean().Price #Mean for 140
+			Flag = Mean7>MeanPrice
+			Old140 = MeanPrice
+		else: #Calculate everything boiiiii
+			amt = ComputeData.Price[x]
+			Mean06 = EMA_Calculator(amt,6,Old06) #6DayEMA
+			Mean21 = EMA_Calculator(amt,21,Old21)#21 day EMA
+			Mean7  = EMA_Calculator(amt,70,Old7) #70 day EMA
+			Mean140 = EMA_Calculator(amt,140,Old140) #140 day EMA
+			Old6, Old21, Old7,Old140 = Mean06, Mean21, Mean21, Mean140
+			Flag = Mean7 > Mean140
+
+
+		
+		#We now write and flush the calculated Values.
+		EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140,Flag,Mean06,Mean21]) #Date,Price,Chg,Av_Sev,Av_OneFrty,flag,six,twentyone
+	
+
+
+
+
+
+	# Old7,Old140,= Mean7,Mean140
+
+
+	# for x in range(140,1726):
+	# 	# print(x)
+	# 	amt = ComputeData.Price[x]
+	# 	Mean7 = EMA_Calculator(amt,70,Old7)
+	# 	Old7 = Mean7
+	# 	Mean140 = EMA_Calculator(amt,140,Old140)
+	# 	Old140 = Mean140
+	# 	EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140])
 
 
 
