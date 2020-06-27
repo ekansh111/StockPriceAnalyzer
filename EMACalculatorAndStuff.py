@@ -56,7 +56,8 @@ with open("NotFucked.csv", "r") as CSVDataFile:
 			Mean7  = EMA_Calculator(amt,70,Old7) #70 day EMA
 			Old6, Old21, Old7 = Mean06, Mean21, Mean21
 			MeanPrice = ComputeData[:x].mean().Price #Mean for 140
-			Flag = Mean7>MeanPrice
+			Mean140 = MeanPrice
+			Flag = Mean7>Mean140
 			Old140 = MeanPrice
 		else: #Calculate everything boiiiii
 			amt = ComputeData.Price[x]
