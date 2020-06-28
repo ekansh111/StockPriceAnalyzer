@@ -25,13 +25,21 @@ def SellDate(Stuff,StartIndex):
 
 with open("DataWithEMA.csv", "r") as CSVDataFile:
 	DataFile = pd.read_csv(CSVDataFile)
-	Data = DataFile[["Date","Price","Chg","Av_Sev","Av_OneFrty"]] #The dataframe thingy
+	Data = DataFile[["Date","Price","Chg","SevOverFortyFlag","SixOverTwenOneFlag"]] #The dataframe thingy
 	# When to buy
 	x,TotProf,TradP,TradL = 0,0,0,0
 	while (x<1726):
-		if(Data.Av_Sev[x]>Data.Av_OneFrty[x]):
+		if(Data.SevOverFortyFlag[x]):
 			print("Buy On: "+Data.Date[x])
 			x, prof = SellDate(Data,x+1)
+			if(prof > 0):
+				TradP = TradP + 1
+			else:
+				TradL = TradL + 1
+			TotProf = TotProf + prof
+		if(x<1726 and Data.SevOverFortyFlag[x] and Data.SixOverTwenOneFlag[x] ):
+			print("Buy On: "+Data.Date[x])
+			x, prof  = SellDate(Data, x+1)
 			if(prof > 0):
 				TradP = TradP + 1
 			else:
