@@ -16,23 +16,28 @@ def reset_my_index(df):
 
 with open("NotFucked.csv", "r") as CSVDataFile:
 	DataFile = pd.read_csv(CSVDataFile)
-	ComputeData = DataFile[["Date","Price","Chg"]]
-	# ComputeData.reindex(index=ComputeData.index[::-1])
-	ComputeData = reset_my_index(ComputeData)
-	EMADataFile = open("DataWithEMA.csv", "w", newline="\n")
+	ComputeData = DataFile[["Date","Price","Chg","High","Low"]]
+	
+	ComputeData = reset_my_index(ComputeData)#reordering data
+
+	EMADataFile = open("DataWithEMA.csv", "w", newline="\n")#File we are writing data to
 	EMAWriter = csv.writer(EMADataFile)
-	EMAWriter.writerow(["Date","Price","Chg","Av_Sev","Av_OneFrty","SevOverFortyFlag","Av_Six","Av_TwenOne","SixOverTwenOneFlag"])
-	# print(ComputeData.Price[0])
-	EMAWriter.writerow([ComputeData.Date[0],ComputeData.Price[0],ComputeData.Chg[0],ComputeData.Price[0],ComputeData.Price[0],False,ComputeData.Price[0],ComputeData.Price[0], False]) #First Row
+	EMAWriter.writerow(["Date","Price","Chg","Av_Sev","Av_OneFrty","SevOverFortyFlag","Av_Six","Av_TwenOne","SixOverTwenOneFlag","DM_P","DM_N","TR"])
+	
+	EMAWriter.writerow([ComputeData.Date[0],ComputeData.Price[0],ComputeData.Chg[0],ComputeData.Price[0],ComputeData.Price[0],False,ComputeData.Price[0],ComputeData.Price[0], False,0,0,ComputeData.High[0] - ComputeData.Low[0]]) #First Row
 
 	Mean140,Mean7,Old7,Old06,Old21,Old140 = 0,0,0,0,0,0
 	FlagSev, FlagSix = False, False
+
+	# #Data for DI
+	# PrevHi,PrevLow = ComputeData.High[0],ComputeData.Low[0] 
 	for x in range(1,1726):
 		if(x < 6):
 			MeanPrice = ComputeData[:x].mean().Price
 			Mean06,Mean21,Mean140,Mean7 = MeanPrice,MeanPrice,MeanPrice,MeanPrice
 			FlagSev,FlagSix = False, False
 			Old6 = MeanPrice
+
 			
 		elif (x < 21): #EMA For 6 save old 21 day value
 			amt = ComputeData.Price[x]
@@ -73,29 +78,11 @@ with open("NotFucked.csv", "r") as CSVDataFile:
 			FlagSix = Mean06 > Mean21
 			FlagSev = Mean7>Mean140
 
+		TR = ComputeData.High[x] - ComputeData.Low[x] #True Range or whatever
+		DM_P = ComputeData.High[x] - ComputeData.High[x -1] #Current High - Previous High
+		DM_L = ComputeData.Low[x -1] - ComputeData.Low[x] #Previous Low - Current Low 
+
 
 		
 		#We now write and flush the calculated Values.
-		EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140,FlagSev,Mean06,Mean21,FlagSix]) #Date,Price,Chg,Av_Sev,Av_OneFrty,FlagFor70>140,six,twentyone,FlagFor6>21
-	
-
-
-
-
-
-	# Old7,Old140,= Mean7,Mean140
-
-
-	# for x in range(140,1726):
-	# 	# print(x)
-	# 	amt = ComputeData.Price[x]
-	# 	Mean7 = EMA_Calculator(amt,70,Old7)
-	# 	Old7 = Mean7
-	# 	Mean140 = EMA_Calculator(amt,140,Old140)
-	# 	Old140 = Mean140
-	# 	EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140])
-
-
-
-
-
+		EMAWriter.writerow([ComputeData.Date[x],ComputeData.Price[x],ComputeData.Chg[x],Mean7,Mean140,FlagSev,Mean06,Mean21,FlagSix,DM_P,DM_L, TR]) #Date,Price,Chg,Av_Sev,Av_OneFrty,FlagFor70>140,six,twentyone,FlagFor6>21,DI_P,DI_N,TR
